@@ -5,18 +5,17 @@ const request = indexedDB.open('budgetBD', budget || 21);
 
 request.onupgradeneeded = function (e) {
 
+  const { oldVersion } = e;
+  const newVersion = e.newVersion || db.version;
 
-//   const { oldVersion } = e;
-//   const newVersion = e.newVersion || db.version;
-
-//   console.log(`DB Updated from version ${oldVersion} to ${newVersion}`);
+  console.log(`DB Updated from version ${oldVersion} to ${newVersion}`);
 
   const db = e.target.result;
-  db.createObjectStore('pending', { autoIncrement: true });
+  db.createObjectStore('budgetStore', { autoIncrement: true });
 
-//   if (db.objectStoreNames.length === 0) {
-//     db.createObjectStore('BudgetStore', { autoIncrement: true });
-//   }
+  if (db.objectStoreNames.length === 0) {
+    db.createObjectStore('budgetStore', { autoIncrement: true });
+  }
 };
 
 request.onerror = function (e) {
@@ -26,8 +25,8 @@ request.onerror = function (e) {
 function checkDatabase() {
   console.log('check db invoked');
 
-  let transaction = db.transaction(['pending'], 'readwrite');
-  const store = transaction.objectStore('pending');
+  let transaction = db.transaction(['budgetStore'], 'readwrite');
+  const store = transaction.objectStore('budgetStore');
   const getAll = store.getAll();
 
   // If the request was successful
@@ -44,12 +43,10 @@ function checkDatabase() {
         .then((response) => response.json())
         .then((res) => {
           if (res.length !== 0) {
-            transaction = db.transaction(['pending'], 'readwrite');
+            transaction = db.transaction(['budgetStore'], 'readwrite');
 
-            // Assign the current store to a variable
-            const currentStore = transaction.objectStore('pending');
+            const currentStore = transaction.objectStore('budgetStore');
 
-            // Clear existing entries because our bulk add was successful
             currentStore.clear();
             console.log('Clearing store 🧹');
           }
@@ -62,7 +59,6 @@ request.onsuccess = function (e) {
   console.log('success');
   db = e.target.result;
 
-  // Check if app is online before reading from db
   if (navigator.onLine) {
     console.log('Backend online! 🗄️');
     checkDatabase();
@@ -72,8 +68,8 @@ request.onsuccess = function (e) {
 function saveRecord(record) {
   console.log('Save record invoked');
 
-  const transaction = db.transaction(['pending'], 'readwrite');
-  const store = transaction.objectStore('pending');
+  const transaction = db.transaction(['budgetStore'], 'readwrite');
+  const store = transaction.objectStore('budgetStore');
 
   store.add(record);
 };

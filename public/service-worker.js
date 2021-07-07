@@ -17,7 +17,6 @@ self.addEventListener("install", function (evt) {
     caches.open(CACHE_NAME).then((cache) => cache.addAll(FILES_TO_CACHE))
   );
 
-
   self.skipWaiting();
 });
 
@@ -59,15 +58,23 @@ self.addEventListener("fetch", function(evt) {
     );
 
     return;
-  }
+  };
+
 
   evt.respondWith(
-    caches.open(CACHE_NAME).then(cache => {
-        return fetch(evt.request).catch(function() {
-            return cache.match(evt.request).then(response => {
-                return response || fetch(evt.request);
-              });
+    caches.match(evt.request).then(cachedResponse => {
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+
+      // request is not in cache. make network request and cache the response
+      return caches.open(DATA_CACHE_NAME).then(cache => {
+        return fetch(evt.request).then(response => {
+          return cache.put(evt.request, response.clone()).then(() => {
+            return response;
+          });
         });
+      });
     })
   );
 });
