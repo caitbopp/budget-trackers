@@ -2,20 +2,17 @@ const CACHE_NAME = "static-cache-v2";
 const DATA_CACHE_NAME = "data-cache-v1";
 const FILES_TO_CACHE = [
   "/",
+  "/db.js",
   "/index.html",
   "/manifest.webmanifest",
   "/index.js",
-  "/assets/css/styles.css",
-  "/assets/images/icons/icon-192x192.png",
-  "/assets/images/icons/icon-512x512.png",
+  "/styles.css",
+  "/icons/icon-192x192.png",
+  "/icons/icon-512x512.png",
 ];
 
 
-self.addEventListener("install", function (evt) {
-  evt.waitUntil(
-    caches.open(DATA_CACHE_NAME).then((cache) => cache.add("/api/images"))
-  );
-    
+self.addEventListener("install", function (evt) {    
   evt.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(FILES_TO_CACHE))
   );
@@ -66,9 +63,11 @@ self.addEventListener("fetch", function(evt) {
 
   evt.respondWith(
     caches.open(CACHE_NAME).then(cache => {
-      return cache.match(evt.request).then(response => {
-        return response || fetch(evt.request);
-      });
+        return fetch(evt.request).catch(function() {
+            return cache.match(evt.request).then(response => {
+                return response || fetch(evt.request);
+              });
+        });
     })
   );
 });
