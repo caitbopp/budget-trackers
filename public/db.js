@@ -1,7 +1,7 @@
 let db;
 let budget;
 
-const request = indexedDB.open('budgetBD', budget || 21);
+const request = indexedDB.open('budgetDB', budget || 21);
 
 request.onupgradeneeded = function (e) {
 
